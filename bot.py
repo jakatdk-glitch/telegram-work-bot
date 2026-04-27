@@ -7,10 +7,11 @@ from aiogram.types import Message
 from aiogram.filters import CommandStart, Command
 
 # ─── НАСТРОЙКИ ───────────────────────────────────────────────
-TELEGRAM_TOKEN  = "5613436098:AAF86T1nQHVWKaCz3pppZXcldsUd0GH9h5A"
-TARGET_CHAT_ID  = -5196872792     # ID чата куда слать переводы
-ALLOWED_USER_ID = 93372553         # Твой Telegram user_id
-GEMINI_API_KEY  = "AIzaSyA2kRqDpYGKBQYLyOcK-Yn_VHHgMSATw1w"
+import os
+TELEGRAM_TOKEN  = os.environ["TELEGRAM_TOKEN"]
+TARGET_CHAT_ID  = int(os.environ["TARGET_CHAT_ID"])
+ALLOWED_USER_ID = int(os.environ["ALLOWED_USER_ID"])
+GEMINI_API_KEY  = os.environ["GEMINI_API_KEY"]
 # ─────────────────────────────────────────────────────────────
 
 logging.basicConfig(level=logging.INFO)
