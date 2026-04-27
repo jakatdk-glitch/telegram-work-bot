@@ -1,34 +1,22 @@
 import asyncio
 import logging
-import google.generativeai as genai
+import aiohttp
 from datetime import datetime
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message
 from aiogram.filters import CommandStart, Command
+import os
 
 # ─── НАСТРОЙКИ ───────────────────────────────────────────────
-import os
 TELEGRAM_TOKEN  = os.environ["TELEGRAM_TOKEN"]
 TARGET_CHAT_ID  = int(os.environ["TARGET_CHAT_ID"])
 ALLOWED_USER_ID = int(os.environ["ALLOWED_USER_ID"])
-GEMINI_API_KEY  = os.environ["GEMINI_API_KEY"]
 # ─────────────────────────────────────────────────────────────
 
 logging.basicConfig(level=logging.INFO)
 
 bot = Bot(token=TELEGRAM_TOKEN)
 dp  = Dispatcher()
-
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel(
-    model_name="gemini-2.0-flash",
-    system_instruction=(
-        "Sen bir çeviri asistanısın. "
-        "Kullanıcının gönderdiği metni Türkçeye çevir. "
-        "Resmi ve profesyonel bir iş dili kullan. "
-        "Sadece çeviriyi döndür, başka hiçbir şey ekleme."
-    ),
-)
 
 # Счётчик задач (сбрасывается каждый день)
 task_counter = {"count": 0, "date": datetime.now().date()}
@@ -44,8 +32,13 @@ def get_next_number() -> int:
 
 
 async def translate_to_turkish(text: str) -> str:
-    response = await model.generate_content_async(text)
-    return response.text.strip()
+    """Переводит текст на турецкий через MyMemory (бесплатно, без ключа)."""
+    url = "https://api.mymemory.translated.net/get"
+    params = {"q": text, "langpair": "ru|tr"}
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, params=params) as resp:
+            data = await resp.json()
+            return data["responseData"]["translatedText"]
 
 
 @dp.message(CommandStart())
@@ -90,7 +83,7 @@ async def handle_task(message: Message):
     try:
         translated = await translate_to_turkish(original_text)
     except Exception as e:
-        task_counter["count"] -= 1  # откатываем счётчик при ошибке
+        task_counter["count"] -= 1
         await message.answer(f"❌ Ошибка перевода: {e}")
         return
 

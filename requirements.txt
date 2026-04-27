@@ -1,3 +1,3 @@
-# cache-bust-2
+# cache-bust-3
 aiogram==3.13.0
-google-generativeai==0.8.3
+aiohttp==3.9.5
